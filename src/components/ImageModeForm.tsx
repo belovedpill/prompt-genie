@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Image, Sun, Maximize2 } from "lucide-react";
+import { Sparkles, Image, Sun, Maximize2, Wand2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Template } from "./PromptTemplates";
+import { usePromptEnhancer } from "@/hooks/usePromptEnhancer";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface ImageModeFormProps {
   onGenerate: (prompt: string) => void;
@@ -50,6 +53,8 @@ export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
   const [style, setStyle] = useState("");
   const [lighting, setLighting] = useState("");
   const [aspectRatio, setAspectRatio] = useState("");
+  const [enhanceWithAI, setEnhanceWithAI] = useState(true);
+  const { enhancePrompt, isEnhancing } = usePromptEnhancer();
 
   useEffect(() => {
     if (template) {
@@ -60,32 +65,39 @@ export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
     }
   }, [template]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!subject.trim()) return;
 
     const selectedStyle = styles.find((s) => s.value === style);
     const selectedLighting = lightings.find((l) => l.value === lighting);
     const selectedRatio = aspectRatios.find((r) => r.value === aspectRatio);
 
-    let prompt = `/imagine prompt: ${subject.trim()}`;
+    let basePrompt = subject.trim();
 
     if (selectedStyle) {
-      prompt += `, ${selectedStyle.label} style`;
+      basePrompt += `, ${selectedStyle.label} style`;
     }
 
     if (selectedLighting) {
-      prompt += `, ${selectedLighting.label} lighting`;
+      basePrompt += `, ${selectedLighting.label} lighting`;
     }
 
-    prompt += ", highly detailed, 8k, masterpiece";
+    basePrompt += ", highly detailed, 8k, masterpiece";
+
+    // Enhance the base prompt before adding Midjourney-specific syntax
+    const enhancedBase = enhanceWithAI 
+      ? await enhancePrompt(basePrompt, "image")
+      : basePrompt;
+
+    let finalPrompt = `/imagine prompt: ${enhancedBase}`;
 
     if (selectedRatio) {
-      prompt += ` --ar ${selectedRatio.value}`;
+      finalPrompt += ` --ar ${selectedRatio.value}`;
     }
 
-    prompt += " --v 6.0";
+    finalPrompt += " --v 6.0";
 
-    onGenerate(prompt);
+    onGenerate(finalPrompt);
   };
 
   return (
@@ -165,14 +177,46 @@ export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
         </div>
       </div>
 
+      {/* AI Enhancement Toggle */}
+      <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Wand2 className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <Label htmlFor="ai-enhance-image" className="text-sm font-medium cursor-pointer">
+              AI Enhancement
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Add vivid details and artistic direction with AI
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="ai-enhance-image"
+          checked={enhanceWithAI}
+          onCheckedChange={setEnhanceWithAI}
+        />
+      </div>
+
       <Button
         onClick={handleGenerate}
-        disabled={!subject.trim()}
+        disabled={!subject.trim() || isEnhancing}
         size="lg"
-        className="w-full"
+        className="w-full group relative overflow-hidden"
       >
-        <Sparkles className="w-5 h-5" />
-        Generate Prompt
+        <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+        {isEnhancing ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Enhancing with AI...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
+            Generate Prompt
+          </>
+        )}
       </Button>
     </div>
   );

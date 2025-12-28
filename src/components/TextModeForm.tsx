@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, User, FileCode } from "lucide-react";
+import { Sparkles, User, FileCode, Wand2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Template } from "./PromptTemplates";
+import { usePromptEnhancer } from "@/hooks/usePromptEnhancer";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface TextModeFormProps {
   onGenerate: (prompt: string) => void;
@@ -38,6 +41,8 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
   const [coreTask, setCoreTask] = useState("");
   const [persona, setPersona] = useState("");
   const [format, setFormat] = useState("");
+  const [enhanceWithAI, setEnhanceWithAI] = useState(true);
+  const { enhancePrompt, isEnhancing } = usePromptEnhancer();
 
   useEffect(() => {
     if (template) {
@@ -47,7 +52,7 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
     }
   }, [template]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!coreTask.trim()) return;
 
     const selectedPersona = personas.find((p) => p.value === persona);
@@ -65,7 +70,11 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
       prompt += `Constraint: Ensure the output is in ${selectedFormat.label} format.`;
     }
 
-    onGenerate(prompt.trim());
+    const finalPrompt = enhanceWithAI 
+      ? await enhancePrompt(prompt.trim(), "text")
+      : prompt.trim();
+
+    onGenerate(finalPrompt);
   };
 
   return (
@@ -126,14 +135,46 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
         </div>
       </div>
 
+      {/* AI Enhancement Toggle */}
+      <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Wand2 className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <Label htmlFor="ai-enhance" className="text-sm font-medium cursor-pointer">
+              AI Enhancement
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Automatically improve your prompt with AI
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="ai-enhance"
+          checked={enhanceWithAI}
+          onCheckedChange={setEnhanceWithAI}
+        />
+      </div>
+
       <Button
         onClick={handleGenerate}
-        disabled={!coreTask.trim()}
+        disabled={!coreTask.trim() || isEnhancing}
         size="lg"
-        className="w-full"
+        className="w-full group relative overflow-hidden"
       >
-        <Sparkles className="w-5 h-5" />
-        Generate Prompt
+        <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+        {isEnhancing ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Enhancing with AI...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-5 h-5 group-hover:animate-pulse" />
+            Generate Prompt
+          </>
+        )}
       </Button>
     </div>
   );
