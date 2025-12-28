@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, Image, Sun, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Template } from "./PromptTemplates";
 
 interface ImageModeFormProps {
   onGenerate: (prompt: string) => void;
+  template?: Template | null;
 }
 
 const styles = [
@@ -43,11 +45,20 @@ const aspectRatios = [
   { value: "21:9", label: "21:9 (Ultrawide)" },
 ];
 
-export const ImageModeForm = ({ onGenerate }: ImageModeFormProps) => {
+export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
   const [subject, setSubject] = useState("");
   const [style, setStyle] = useState("");
   const [lighting, setLighting] = useState("");
   const [aspectRatio, setAspectRatio] = useState("");
+
+  useEffect(() => {
+    if (template) {
+      if (template.subject) setSubject(template.subject);
+      if (template.style) setStyle(template.style);
+      if (template.lighting) setLighting(template.lighting);
+      if (template.aspectRatio) setAspectRatio(template.aspectRatio);
+    }
+  }, [template]);
 
   const handleGenerate = () => {
     if (!subject.trim()) return;

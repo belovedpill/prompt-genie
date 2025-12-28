@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sparkles, User, FileCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Template } from "./PromptTemplates";
 
 interface TextModeFormProps {
   onGenerate: (prompt: string) => void;
+  template?: Template | null;
 }
 
 const personas = [
@@ -32,10 +34,18 @@ const formats = [
   { value: "summary", label: "Summary" },
 ];
 
-export const TextModeForm = ({ onGenerate }: TextModeFormProps) => {
+export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
   const [coreTask, setCoreTask] = useState("");
   const [persona, setPersona] = useState("");
   const [format, setFormat] = useState("");
+
+  useEffect(() => {
+    if (template) {
+      if (template.coreTask) setCoreTask(template.coreTask);
+      if (template.persona) setPersona(template.persona);
+      if (template.format) setFormat(template.format);
+    }
+  }, [template]);
 
   const handleGenerate = () => {
     if (!coreTask.trim()) return;
