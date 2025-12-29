@@ -4,18 +4,19 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { TextModeForm } from "@/components/TextModeForm";
 import { ImageModeForm } from "@/components/ImageModeForm";
 import { OutputCard } from "@/components/OutputCard";
-import { HistorySidebar, HistoryItem } from "@/components/HistorySidebar";
+import { HistorySidebar } from "@/components/HistorySidebar";
 import { PromptTemplates, Template } from "@/components/PromptTemplates";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { usePromptHistory } from "@/hooks/usePromptHistory";
 import { toast } from "sonner";
 
 const Index = () => {
   const { signOut, user } = useAuth();
+  const { history, addToHistory, clearHistory } = usePromptHistory();
   const [mode, setMode] = useState<"text" | "image">("text");
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
   const handleSignOut = async () => {
@@ -27,21 +28,9 @@ const Index = () => {
     }
   };
 
-  const handleGenerate = (prompt: string) => {
+  const handleGenerate = async (prompt: string) => {
     setGeneratedPrompt(prompt);
-
-    const newItem: HistoryItem = {
-      id: crypto.randomUUID(),
-      prompt,
-      mode,
-      timestamp: new Date(),
-    };
-
-    setHistory((prev) => [newItem, ...prev].slice(0, 5));
-  };
-
-  const handleClearHistory = () => {
-    setHistory([]);
+    await addToHistory(prompt, mode);
   };
 
   const handleSelectTemplate = (template: Template) => {
@@ -125,7 +114,7 @@ const Index = () => {
 
         {/* History Sidebar - Hidden on mobile, visible on lg+ */}
         <aside className="hidden lg:block w-80 border-l border-border opacity-0 animate-fade-in" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
-          <HistorySidebar history={history} onClear={handleClearHistory} />
+          <HistorySidebar history={history} onClear={clearHistory} />
         </aside>
       </div>
 
