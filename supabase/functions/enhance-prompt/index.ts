@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,6 +16,35 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("Missing authorization header");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify the JWT token
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
+      console.error("Authentication failed:", authError?.message);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Authenticated user: ${user.id}`);
+
     // Parse and validate request body
     let body: unknown;
     try {
@@ -99,7 +129,7 @@ serve(async (req) => {
          Improve the structure, add relevant context, and make it more actionable while preserving the original intent.
          Keep the response concise - just return the enhanced prompt, nothing else.`;
 
-    console.log(`Processing ${validatedMode} prompt enhancement request (${trimmedPrompt.length} chars)`);
+    console.log(`Processing ${validatedMode} prompt enhancement request for user ${user.id} (${trimmedPrompt.length} chars)`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -139,7 +169,7 @@ serve(async (req) => {
     const data = await response.json();
     const enhancedPrompt = data.choices?.[0]?.message?.content?.trim() || trimmedPrompt;
 
-    console.log("Successfully enhanced prompt");
+    console.log(`Successfully enhanced prompt for user ${user.id}`);
 
     return new Response(JSON.stringify({ enhancedPrompt }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

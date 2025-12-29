@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles, Zap, LogOut } from "lucide-react";
 import { ModeToggle } from "@/components/ModeToggle";
 import { TextModeForm } from "@/components/TextModeForm";
 import { ImageModeForm } from "@/components/ImageModeForm";
@@ -7,12 +7,25 @@ import { OutputCard } from "@/components/OutputCard";
 import { HistorySidebar, HistoryItem } from "@/components/HistorySidebar";
 import { PromptTemplates, Template } from "@/components/PromptTemplates";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Index = () => {
+  const { signOut, user } = useAuth();
   const [mode, setMode] = useState<"text" | "image">("text");
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Failed to sign out");
+    } else {
+      toast.success("Signed out successfully");
+    }
+  };
 
   const handleGenerate = (prompt: string) => {
     setGeneratedPrompt(prompt);
@@ -54,16 +67,36 @@ const Index = () => {
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <header className="p-6 md:p-8">
-            <div className="max-w-4xl mx-auto text-center space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm text-muted-foreground mb-4 opacity-0 animate-fade-in stagger-1">
-                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                <span>AI-Powered Prompt Generator</span>
-                <Zap className="w-4 h-4 text-primary animate-pulse" />
+            <div className="max-w-4xl mx-auto">
+              {/* User Info & Sign Out */}
+              <div className="flex justify-end mb-4 opacity-0 animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground hidden sm:inline">
+                    {user?.email}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSignOut}
+                    className="gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </Button>
+                </div>
               </div>
-              <AnimatedTitle />
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto opacity-0 animate-slide-up stagger-3">
-                Craft perfect prompts for ChatGPT, Gemini, Midjourney, and Flux with AI enhancement
-              </p>
+
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm text-muted-foreground mb-4 opacity-0 animate-fade-in stagger-1">
+                  <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                  <span>AI-Powered Prompt Generator</span>
+                  <Zap className="w-4 h-4 text-primary animate-pulse" />
+                </div>
+                <AnimatedTitle />
+                <p className="text-lg text-muted-foreground max-w-xl mx-auto opacity-0 animate-slide-up stagger-3">
+                  Craft perfect prompts for ChatGPT, Gemini, Midjourney, and Flux with AI enhancement
+                </p>
+              </div>
             </div>
           </header>
 
