@@ -2,13 +2,7 @@ import { History, FileText, Palette, Copy, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-export interface HistoryItem {
-  id: string;
-  prompt: string;
-  mode: "text" | "image";
-  timestamp: Date;
-}
+import { HistoryItem } from "@/hooks/usePromptHistory";
 
 interface HistorySidebarProps {
   history: HistoryItem[];
@@ -22,7 +16,14 @@ export const HistorySidebar = ({ history, onClear }: HistorySidebarProps) => {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
   };
 
   return (
