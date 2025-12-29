@@ -13,6 +13,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const isGuest = window.location.search.includes("guest=true");
 
   if (isLoading) {
     return (
@@ -22,7 +23,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) {
+  if (!user && !isGuest) {
     return <Navigate to="/auth" replace />;
   }
 

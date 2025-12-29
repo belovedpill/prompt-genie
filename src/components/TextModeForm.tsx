@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, User, FileCode, Wand2, Loader2 } from "lucide-react";
+import { Sparkles, User, FileCode, Wand2, Loader2, TrendingUp, PenTool, Scale, BarChart3, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,15 +17,16 @@ import { Label } from "@/components/ui/label";
 interface TextModeFormProps {
   onGenerate: (prompt: string) => void;
   template?: Template | null;
+  initialPrompt?: string;
 }
 
 const personas = [
-  { value: "coding-expert", label: "Coding Expert", icon: "💻" },
-  { value: "marketing-guru", label: "Marketing Guru", icon: "📈" },
-  { value: "creative-writer", label: "Creative Writer", icon: "✍️" },
-  { value: "lawyer", label: "Lawyer", icon: "⚖️" },
-  { value: "data-analyst", label: "Data Analyst", icon: "📊" },
-  { value: "teacher", label: "Teacher", icon: "🎓" },
+  { value: "coding-expert", label: "Coding Expert", icon: FileCode },
+  { value: "marketing-guru", label: "Marketing Guru", icon: TrendingUp },
+  { value: "creative-writer", label: "Creative Writer", icon: PenTool },
+  { value: "lawyer", label: "Lawyer", icon: Scale },
+  { value: "data-analyst", label: "Data Analyst", icon: BarChart3 },
+  { value: "teacher", label: "Teacher", icon: GraduationCap },
 ];
 
 const formats = [
@@ -37,7 +38,7 @@ const formats = [
   { value: "summary", label: "Summary" },
 ];
 
-export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
+export const TextModeForm = ({ onGenerate, template, initialPrompt }: TextModeFormProps) => {
   const [coreTask, setCoreTask] = useState("");
   const [persona, setPersona] = useState("");
   const [format, setFormat] = useState("");
@@ -51,6 +52,12 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
       if (template.format) setFormat(template.format);
     }
   }, [template]);
+
+  useEffect(() => {
+    if (initialPrompt) {
+      setCoreTask(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const handleGenerate = async () => {
     if (!coreTask.trim()) return;
@@ -106,7 +113,7 @@ export const TextModeForm = ({ onGenerate, template }: TextModeFormProps) => {
               {personas.map((p) => (
                 <SelectItem key={p.value} value={p.value}>
                   <span className="flex items-center gap-2">
-                    <span>{p.icon}</span>
+                    <p.icon className="w-4 h-4 text-primary" />
                     <span>{p.label}</span>
                   </span>
                 </SelectItem>
