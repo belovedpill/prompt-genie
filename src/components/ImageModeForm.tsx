@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Image, Sun, Maximize2, Wand2, Loader2 } from "lucide-react";
+import { Sparkles, Image, Sun, Maximize2, Wand2, Loader2, Camera, Palette, Gamepad2, Frame, Paintbrush, Monitor, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,17 +17,18 @@ import { Label } from "@/components/ui/label";
 interface ImageModeFormProps {
   onGenerate: (prompt: string) => void;
   template?: Template | null;
+  initialPrompt?: string;
 }
 
 const styles = [
-  { value: "photorealistic", label: "Photorealistic", icon: "📷" },
-  { value: "anime", label: "Anime", icon: "🎌" },
-  { value: "oil-painting", label: "Oil Painting", icon: "🎨" },
-  { value: "3d-render", label: "3D Render", icon: "🎮" },
-  { value: "polaroid", label: "Polaroid", icon: "📸" },
-  { value: "watercolor", label: "Watercolor", icon: "🖌️" },
-  { value: "digital-art", label: "Digital Art", icon: "💻" },
-  { value: "pencil-sketch", label: "Pencil Sketch", icon: "✏️" },
+  { value: "photorealistic", label: "Photorealistic", icon: Camera },
+  { value: "anime", label: "Anime", icon: Sparkles },
+  { value: "oil-painting", label: "Oil Painting", icon: Palette },
+  { value: "3d-render", label: "3D Render", icon: Gamepad2 },
+  { value: "polaroid", label: "Polaroid", icon: Frame },
+  { value: "watercolor", label: "Watercolor", icon: Paintbrush },
+  { value: "digital-art", label: "Digital Art", icon: Monitor },
+  { value: "pencil-sketch", label: "Pencil Sketch", icon: Pencil },
 ];
 
 const lightings = [
@@ -48,7 +49,7 @@ const aspectRatios = [
   { value: "21:9", label: "21:9 (Ultrawide)" },
 ];
 
-export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
+export const ImageModeForm = ({ onGenerate, template, initialPrompt }: ImageModeFormProps) => {
   const [subject, setSubject] = useState("");
   const [style, setStyle] = useState("");
   const [lighting, setLighting] = useState("");
@@ -64,6 +65,12 @@ export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
       if (template.aspectRatio) setAspectRatio(template.aspectRatio);
     }
   }, [template]);
+
+  useEffect(() => {
+    if (initialPrompt) {
+      setSubject(initialPrompt);
+    }
+  }, [initialPrompt]);
 
   const handleGenerate = async () => {
     if (!subject.trim()) return;
@@ -129,7 +136,7 @@ export const ImageModeForm = ({ onGenerate, template }: ImageModeFormProps) => {
               {styles.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   <span className="flex items-center gap-2">
-                    <span>{s.icon}</span>
+                    <s.icon className="w-4 h-4 text-primary" />
                     <span>{s.label}</span>
                   </span>
                 </SelectItem>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles, Loader2, Mail, Lock, ArrowRight } from "lucide-react";
+import { Sparkles, Loader2, Mail, Lock, ArrowRight, UserX, Zap } from "lucide-react";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 
 const authSchema = z.object({
@@ -87,87 +87,100 @@ const Auth = () => {
     }
   };
 
+  const handleGuestAccess = () => {
+    navigate("/?guest=true");
+    toast.info("Browsing as guest - history won't be saved");
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col overflow-hidden">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-blue/5 rounded-full blur-3xl animate-float stagger-3" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-morph" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-blue/5 rounded-full blur-3xl animate-float-slow stagger-3" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/3 to-neon-blue/3 rounded-full blur-3xl animate-pulse-glow" />
+        <div className="absolute top-20 right-20 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-float stagger-2" />
+        <div className="absolute bottom-20 left-20 w-24 h-24 bg-neon-blue/10 rounded-full blur-2xl animate-float stagger-4" />
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <div className="w-full max-w-md space-y-8 opacity-0 animate-scale-in">
+        <div className="w-full max-w-md space-y-8">
           {/* Header */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm text-muted-foreground mb-4">
+          <div className="text-center space-y-4 opacity-0 animate-slide-down" style={{ animationFillMode: "forwards" }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm text-muted-foreground mb-4 animate-border-glow">
               <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               <span>AI-Powered Prompt Generator</span>
+              <Zap className="w-4 h-4 text-primary animate-pulse" />
             </div>
             <AnimatedTitle />
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground opacity-0 animate-fade-in stagger-2" style={{ animationFillMode: "forwards" }}>
               {isLogin ? "Sign in to your account" : "Create a new account"}
             </p>
           </div>
 
           {/* Form */}
-          <div className="glass-panel p-6 md:p-8 space-y-6 hover:shadow-glow transition-shadow duration-500">
+          <div className="glass-panel p-6 md:p-8 space-y-6 opacity-0 animate-scale-bounce stagger-3 hover-glow transition-all duration-500" style={{ animationFillMode: "forwards" }}>
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
+              <div className="space-y-2 opacity-0 animate-slide-up stagger-4" style={{ animationFillMode: "forwards" }}>
                 <Label htmlFor="email" className="text-sm font-medium">
                   Email
                 </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+                    className={`pl-10 transition-all duration-300 focus:shadow-glow ${errors.email ? "border-destructive" : ""}`}
                     disabled={isSubmitting}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
+                  <p className="text-sm text-destructive animate-slide-up">{errors.email}</p>
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 opacity-0 animate-slide-up stagger-5" style={{ animationFillMode: "forwards" }}>
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`pl-10 ${errors.password ? "border-destructive" : ""}`}
+                    className={`pl-10 transition-all duration-300 focus:shadow-glow ${errors.password ? "border-destructive" : ""}`}
                     disabled={isSubmitting}
                   />
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
+                  <p className="text-sm text-destructive animate-slide-up">{errors.password}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full group"
+                className="w-full group relative overflow-hidden opacity-0 animate-slide-up stagger-6"
+                style={{ animationFillMode: "forwards" }}
                 disabled={isSubmitting}
               >
+                <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/20 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
@@ -179,7 +192,7 @@ const Auth = () => {
               </Button>
             </form>
 
-            <div className="relative">
+            <div className="relative opacity-0 animate-fade-in stagger-7" style={{ animationFillMode: "forwards" }}>
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border/30" />
               </div>
@@ -190,17 +203,30 @@ const Auth = () => {
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              disabled={isSubmitting}
-            >
-              {isLogin ? "Create an account" : "Sign in instead"}
-            </Button>
+            <div className="space-y-3 opacity-0 animate-slide-up stagger-8" style={{ animationFillMode: "forwards" }}>
+              <Button
+                variant="outline"
+                className="w-full hover:border-primary/50 transition-all duration-300"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setErrors({});
+                }}
+                disabled={isSubmitting}
+              >
+                {isLogin ? "Create an account" : "Sign in instead"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full gap-2 text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-300"
+                onClick={handleGuestAccess}
+                disabled={isSubmitting}
+              >
+                <UserX className="w-4 h-4" />
+                Continue as Guest
+                <span className="text-xs text-muted-foreground/70">(no history)</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
