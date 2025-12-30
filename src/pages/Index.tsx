@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Sparkles, Zap, LogOut, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ModeToggle } from "@/components/ModeToggle";
@@ -9,7 +9,6 @@ import { HistorySidebar } from "@/components/HistorySidebar";
 import { PromptTemplates, Template } from "@/components/PromptTemplates";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { UserManual } from "@/components/UserManual";
-import { AsciiBackground } from "@/components/AsciiBackground";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
@@ -60,16 +59,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden bg-[#0a0a0f]">
-      {/* ASCII Background */}
-      <AsciiBackground />
-      
-      {/* Gradient overlay for depth */}
-      <div className="fixed inset-0 pointer-events-none z-[1] bg-gradient-to-b from-transparent via-[#0a0a0f]/30 to-[#0a0a0f]/60" />
+    <div className="min-h-screen flex flex-col overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float animate-morph" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neon-blue/5 rounded-full blur-3xl animate-float-slow stagger-3" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/3 to-neon-blue/3 rounded-full blur-3xl animate-pulse-glow" />
+        <div className="absolute top-20 right-1/3 w-40 h-40 bg-primary/8 rounded-full blur-2xl animate-float stagger-2" />
+        <div className="absolute bottom-32 left-1/4 w-32 h-32 bg-neon-blue/8 rounded-full blur-2xl animate-float-slow stagger-5" />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex relative z-10">
-        <div className="flex-1 flex flex-col relative z-10">
+        <div className="flex-1 flex flex-col">
           {/* Header */}
           <header className="p-6 md:p-8">
             <div className="max-w-4xl mx-auto">
