@@ -1,65 +1,55 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-interface Particle {
+interface Star {
   x: number;
   y: number;
-  baseX: number;
-  baseY: number;
   size: number;
-  color: string;
   opacity: number;
+  twinkleSpeed: number;
+  twinklePhase: number;
+  color: string;
   vx: number;
   vy: number;
-  angle: number;
-  speed: number;
-  wobbleSpeed: number;
-  wobbleAmplitude: number;
 }
 
-const COLORS = [
-  "rgba(94, 200, 200, 1)",   // teal
-  "rgba(255, 127, 102, 1)",  // coral
-  "rgba(240, 195, 80, 1)",   // mustard
-  "rgba(100, 149, 237, 1)",  // blue
-  "rgba(255, 150, 180, 1)",  // pink
+const STAR_COLORS = [
+  "rgba(147, 197, 253, 1)",   // light blue
+  "rgba(196, 181, 253, 1)",   // lavender
+  "rgba(252, 211, 77, 1)",    // gold
+  "rgba(167, 243, 208, 1)",   // mint
+  "rgba(255, 255, 255, 1)",   // white
 ];
 
 export const HeroSection = ({ onStart }: { onStart?: () => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
-  const particlesRef = useRef<Particle[]>([]);
+  const starsRef = useRef<Star[]>([]);
   const animationRef = useRef<number>();
   const [isMobile, setIsMobile] = useState(false);
 
-  const createParticles = useCallback((width: number, height: number) => {
-    const particleCount = isMobile ? 60 : 120;
-    const particles: Particle[] = [];
+  const createStars = useCallback((width: number, height: number) => {
+    const starCount = isMobile ? 80 : 150;
+    const stars: Star[] = [];
 
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < starCount; i++) {
       const x = Math.random() * width;
       const y = Math.random() * height;
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 0.2 + Math.random() * 0.4;
 
-      particles.push({
+      stars.push({
         x,
         y,
-        baseX: x,
-        baseY: y,
-        size: 2 + Math.random() * 6,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        opacity: 0.3 + Math.random() * 0.5,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        angle,
-        speed,
-        wobbleSpeed: 0.01 + Math.random() * 0.02,
-        wobbleAmplitude: 20 + Math.random() * 40,
+        size: 3 + Math.random() * 5,
+        opacity: 0.4 + Math.random() * 0.6,
+        twinkleSpeed: 0.02 + Math.random() * 0.04,
+        twinklePhase: Math.random() * Math.PI * 2,
+        color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
       });
     }
 
-    return particles;
+    return stars;
   }, [isMobile]);
 
   useEffect(() => {
@@ -85,7 +75,7 @@ export const HeroSection = ({ onStart }: { onStart?: () => void }) => {
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
       ctx.scale(dpr, dpr);
-      particlesRef.current = createParticles(window.innerWidth, window.innerHeight);
+      starsRef.current = createStars(window.innerWidth, window.innerHeight);
     };
 
     resizeCanvas();
@@ -97,71 +87,96 @@ export const HeroSection = ({ onStart }: { onStart?: () => void }) => {
       const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // Create gradient background
+      // Deep dark gradient background
       const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, "#1f2233");
-      gradient.addColorStop(1, "#2a2d44");
+      gradient.addColorStop(0, "#0a0a0f");
+      gradient.addColorStop(0.5, "#0d0d15");
+      gradient.addColorStop(1, "#0a0a0f");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
-      time += 0.01;
+      time += 0.016;
 
-      particlesRef.current.forEach((particle) => {
-        // Natural diagonal drift with wobble
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        // Add subtle wobble for organic motion
-        const wobbleX = Math.sin(time * particle.wobbleSpeed * 10 + particle.angle) * 0.3;
-        const wobbleY = Math.cos(time * particle.wobbleSpeed * 10 + particle.angle) * 0.3;
-        particle.x += wobbleX;
-        particle.y += wobbleY;
+      starsRef.current.forEach((star) => {
+        // Gentle drift
+        star.x += star.vx;
+        star.y += star.vy;
 
         // Mouse repulsion (only on desktop)
         if (!isMobile) {
-          const dx = particle.x - mouseRef.current.x;
-          const dy = particle.y - mouseRef.current.y;
+          const dx = star.x - mouseRef.current.x;
+          const dy = star.y - mouseRef.current.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          const maxDistance = 150;
+          const maxDistance = 120;
 
           if (distance < maxDistance && distance > 0) {
-            const force = (1 - distance / maxDistance) * 3;
-            const pushX = (dx / distance) * force;
-            const pushY = (dy / distance) * force;
-            particle.x += pushX;
-            particle.y += pushY;
+            const force = (1 - distance / maxDistance) * 2;
+            star.x += (dx / distance) * force;
+            star.y += (dy / distance) * force;
           }
         }
 
-        // Wrap around screen edges smoothly
-        if (particle.x > width + 50) particle.x = -50;
-        if (particle.x < -50) particle.x = width + 50;
-        if (particle.y > height + 50) particle.y = -50;
-        if (particle.y < -50) particle.y = height + 50;
+        // Wrap around screen edges
+        if (star.x > width + 20) star.x = -20;
+        if (star.x < -20) star.x = width + 20;
+        if (star.y > height + 20) star.y = -20;
+        if (star.y < -20) star.y = height + 20;
 
-        // Draw particle with glow effect
+        // Twinkling effect
+        const twinkle = Math.sin(time * star.twinkleSpeed * 60 + star.twinklePhase) * 0.5 + 0.5;
+        const currentOpacity = star.opacity * (0.5 + twinkle * 0.5);
+        const currentSize = star.size * (0.8 + twinkle * 0.4);
+
         ctx.save();
-        ctx.globalAlpha = particle.opacity;
-        
+
         // Outer glow
-        const glowGradient = ctx.createRadialGradient(
-          particle.x, particle.y, 0,
-          particle.x, particle.y, particle.size * 2
+        const glowSize = currentSize * 4;
+        const outerGlow = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, glowSize
         );
-        glowGradient.addColorStop(0, particle.color.replace("1)", "0.6)"));
-        glowGradient.addColorStop(1, particle.color.replace("1)", "0)"));
+        outerGlow.addColorStop(0, star.color.replace("1)", `${currentOpacity * 0.4})`));
+        outerGlow.addColorStop(0.3, star.color.replace("1)", `${currentOpacity * 0.15})`));
+        outerGlow.addColorStop(1, star.color.replace("1)", "0)"));
         
-        ctx.fillStyle = glowGradient;
+        ctx.fillStyle = outerGlow;
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
+        ctx.arc(star.x, star.y, glowSize, 0, Math.PI * 2);
         ctx.fill();
 
-        // Core particle
-        ctx.fillStyle = particle.color;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
+        // Inner bright core
+        const coreGlow = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, currentSize
+        );
+        coreGlow.addColorStop(0, `rgba(255, 255, 255, ${currentOpacity})`);
+        coreGlow.addColorStop(0.5, star.color.replace("1)", `${currentOpacity * 0.8})`));
+        coreGlow.addColorStop(1, star.color.replace("1)", "0)"));
         
+        ctx.fillStyle = coreGlow;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, currentSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Star cross rays for larger stars
+        if (star.size > 5) {
+          ctx.globalAlpha = currentOpacity * 0.3;
+          ctx.strokeStyle = star.color;
+          ctx.lineWidth = 1;
+          
+          // Horizontal ray
+          ctx.beginPath();
+          ctx.moveTo(star.x - currentSize * 2, star.y);
+          ctx.lineTo(star.x + currentSize * 2, star.y);
+          ctx.stroke();
+          
+          // Vertical ray
+          ctx.beginPath();
+          ctx.moveTo(star.x, star.y - currentSize * 2);
+          ctx.lineTo(star.x, star.y + currentSize * 2);
+          ctx.stroke();
+        }
+
         ctx.restore();
       });
 
@@ -176,7 +191,7 @@ export const HeroSection = ({ onStart }: { onStart?: () => void }) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [createParticles, isMobile]);
+  }, [createStars, isMobile]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isMobile) {
@@ -204,30 +219,31 @@ export const HeroSection = ({ onStart }: { onStart?: () => void }) => {
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6">
         <div className="text-center space-y-6 animate-hero-fade-in">
           {/* Title */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight text-white">
-            <span className="block animate-hero-title-1">Seeing</span>
-            <span className="block animate-hero-title-2">Theory</span>
+          <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight">
+            <span className="block animate-hero-title-1 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(147,197,253,0.5)]">
+              Promtit
+            </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl md:text-2xl text-white/70 font-light max-w-lg mx-auto leading-relaxed animate-hero-subtitle">
-            A visual introduction to probability and statistics.
+          <p className="text-xl sm:text-2xl md:text-3xl text-white/80 font-light max-w-2xl mx-auto leading-relaxed animate-hero-subtitle">
+            Make your thought greatest.
           </p>
 
           {/* CTA Button */}
-          <div className="pt-4 animate-hero-button">
+          <div className="pt-6 animate-hero-button">
             <Button
               onClick={onStart}
-              className="bg-white hover:bg-white/90 text-slate-900 font-medium px-8 py-6 text-lg rounded-full transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+              className="bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 hover:from-blue-400 hover:via-purple-400 hover:to-cyan-400 text-white font-semibold px-10 py-7 text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-[0_0_40px_rgba(147,197,253,0.4)] hover:shadow-[0_0_60px_rgba(147,197,253,0.6)]"
             >
-              Start
+              Start Creating
             </Button>
           </div>
         </div>
       </div>
 
       {/* Subtle vignette overlay */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(31,34,51,0.4)_100%)]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(10,10,15,0.6)_100%)]" />
     </div>
   );
 };
