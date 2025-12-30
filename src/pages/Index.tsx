@@ -109,12 +109,12 @@ const Index = () => {
               <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm text-muted-foreground mb-4 opacity-0 animate-scale-bounce stagger-1 animate-border-glow" style={{ animationFillMode: "forwards" }}>
                   <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                  <span>AI-Powered Prompt Generator</span>
+                  <span>AI-Powered Prompt Enhancement</span>
                   <Zap className="w-4 h-4 text-primary animate-pulse" />
                 </div>
                 <AnimatedTitle />
                 <p className="text-lg text-muted-foreground max-w-xl mx-auto opacity-0 animate-fade-in-up stagger-3" style={{ animationFillMode: "forwards" }}>
-                  Craft perfect prompts for ChatGPT, Gemini, Midjourney, and Flux with AI enhancement
+                  Transform your ideas into powerful, optimized prompts with AI enhancement
                 </p>
                 {isGuest && (
                   <p className="text-sm text-primary/70 opacity-0 animate-fade-in stagger-4" style={{ animationFillMode: "forwards" }}>
