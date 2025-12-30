@@ -16,24 +16,34 @@ serve(async (req) => {
   }
 
   try {
-    // Allow both authenticated and guest users
+    // Verify authentication
     const authHeader = req.headers.get("Authorization");
-    let userId = "guest";
-    
-    if (authHeader) {
-      const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) {
-        userId = user.id;
-      }
+    if (!authHeader) {
+      console.error("Missing authorization header");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    console.log(`Processing request for user: ${userId}`);
+    // Verify the JWT token
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
+      console.error("Authentication failed:", authError?.message);
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`Authenticated user: ${user.id}`);
 
     // Parse and validate request body
     let body: unknown;
@@ -119,7 +129,7 @@ serve(async (req) => {
          Improve the structure, add relevant context, and make it more actionable while preserving the original intent.
          Keep the response concise - just return the enhanced prompt, nothing else.`;
 
-    console.log(`Processing ${validatedMode} prompt enhancement request for ${userId} (${trimmedPrompt.length} chars)`);
+    console.log(`Processing ${validatedMode} prompt enhancement request for user ${user.id} (${trimmedPrompt.length} chars)`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -159,7 +169,7 @@ serve(async (req) => {
     const data = await response.json();
     const enhancedPrompt = data.choices?.[0]?.message?.content?.trim() || trimmedPrompt;
 
-    console.log(`Successfully enhanced prompt for ${userId}`);
+    console.log(`Successfully enhanced prompt for user ${user.id}`);
 
     return new Response(JSON.stringify({ enhancedPrompt }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
